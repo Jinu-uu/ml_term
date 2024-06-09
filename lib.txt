@@ -59,6 +59,7 @@ stack-data @ file:///home/conda/feedstock_root/build_artifacts/stack_data_166963
 tenacity==8.2.3
 threadpoolctl==3.4.0
 tornado @ file:///D:/bld/tornado_1656937958156/work
+tqdm==4.66.4
 traitlets @ file:///home/conda/feedstock_root/build_artifacts/traitlets_1713535121073/work
 typing_extensions==4.10.0
 urllib3==2.2.1
