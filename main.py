@@ -203,7 +203,7 @@ class Audio:
                 if best_acc <= acc:
                     best_acc = acc
                     best_parmas = grid
-            
+                
             return best_acc, best_parmas
         
         else: return None
@@ -212,31 +212,61 @@ class Audio:
 if __name__ == '__main__':
     random.seed(42)
     #mfcc 그리드서치
-    for num_mfcc in [40,80]:
-        print(f"mfcc : {num_mfcc}")
+    num_mfcc=80
 
-        #class 객체 정의
-        audio_obj = Audio('./data', 4, 16000, num_mfcc)
+    print(f"mfcc : {num_mfcc}")
+    
+    #class 객체 정의
+    audio_obj = Audio('./data', 4, 16000, num_mfcc)
+    
+    #모델별 하이퍼파라미터할 파라미터 정의
+    svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[4,8,16]}
+    gmm_parmas = {'covariance_type':('diag','tied'), 'tol':(1e-2,1e-3,1e-4)}
+
+    #svc 하이퍼파라미터 튜닝
+    print(f"mfcc : {num_mfcc} ) svc hyper parameter tuning ----")
+    svc_best_acc, svc_best_parmas = audio_obj.tuning('svc', svc_parameters)
+    print(f"best_acc : {svc_best_acc},\nbest_params : {svc_best_parmas}", end='\n\n')
+
+    print(f"mfcc : {num_mfcc} ) svc fit ----")
+    svc_model_pred = audio_obj.svcModel(svc_best_parmas)
+    # svc_model_pred = audio_obj.svcModel()
+
+    print(f"mfcc : {num_mfcc} ) gmm hyper parameter tuning ----")
+    gmm_best_acc, gmm_best_parmas = audio_obj.tuning('gmm', gmm_parmas)
+    print(f"best_acc : {gmm_best_acc},\nbest_params : {gmm_best_parmas}", end='\n\n')
+
+    print(f"mfcc : {num_mfcc} ) gmm fit ----")
+    gmm_model_pred = audio_obj.gmmModel(gmm_best_parmas)
+    # gmm_model_pred = audio_obj.gmmModel()
+
+
+
+    # for num_mfcc in [40,80]:
+    #     print(f"mfcc : {num_mfcc}")
+
+    #     #class 객체 정의
+    #     audio_obj = Audio('./data', 4, 16000, num_mfcc)
         
-        #모델별 하이퍼파라미터할 파라미터 정의
-        svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[4,8,16]}
-        gmm_parmas = {'covariance_type':('diag','tied'), 'tol':(1e-3, 1e-4)}
+    #     #모델별 하이퍼파라미터할 파라미터 정의
+    #     svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[4,8,16]}
+    #     gmm_parmas = {'covariance_type':('diag','tied'), 'tol':(1e-2,1e-3,1e-4)}
 
-        #svc 하이퍼파라미터 튜닝
-        print(f"mfcc : {num_mfcc} ) svc hyper parameter tuning ----")
-        svc_best_acc, svc_best_parmas = audio_obj.tuning('svc', svc_parameters)
-        print(f"best_acc : {svc_best_acc},\nbest_params : {svc_best_parmas}", end='\n\n')
+    #     #svc 하이퍼파라미터 튜닝
+    #     print(f"mfcc : {num_mfcc} ) svc hyper parameter tuning ----")
+    #     svc_best_acc, svc_best_parmas = audio_obj.tuning('svc', svc_parameters)
+    #     print(f"best_acc : {svc_best_acc},\nbest_params : {svc_best_parmas}", end='\n\n')
 
 
-        print(f"mfcc : {num_mfcc} ) svc fit ----")
-        svc_model_pred = audio_obj.svcModel(svc_best_parmas)
-        # svc_model_pred = audio_obj.svcModel()
+    #     print(f"mfcc : {num_mfcc} ) svc fit ----")
+    #     svc_model_pred = audio_obj.svcModel(svc_best_parmas)
+    #     # svc_model_pred = audio_obj.svcModel()
 
-        if num_mfcc < 120:
-            print(f"mfcc : {num_mfcc} ) gmm hyper parameter tuning ----")
-            gmm_best_acc, gmm_best_parmas = audio_obj.tuning('gmm', gmm_parmas)
-            print(f"best_acc : {gmm_best_acc},\nbest_params : {gmm_best_parmas}", end='\n\n')
+    #     if num_mfcc < 120:
+    #         print(f"mfcc : {num_mfcc} ) gmm hyper parameter tuning ----")
+    #         gmm_best_acc, gmm_best_parmas = audio_obj.tuning('gmm', gmm_parmas)
+    #         print(f"best_acc : {gmm_best_acc},\nbest_params : {gmm_best_parmas}", end='\n\n')
 
-            print(f"mfcc : {num_mfcc} ) gmm fit ----")
-            gmm_model_pred = audio_obj.gmmModel(gmm_best_parmas)
-            # gmm_model_pred = audio_obj.gmmModel()
+    #         print(f"mfcc : {num_mfcc} ) gmm fit ----")
+    #         gmm_model_pred = audio_obj.gmmModel(gmm_best_parmas)
+    #         # gmm_model_pred = audio_obj.gmmModel()
