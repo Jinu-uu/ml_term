@@ -38,9 +38,19 @@ class Audio:
             for value in self.toMfcc(data):
                 self.dataset_x.append(value)
                 self.dataset_y.append(index)
+            
+        self.dataset_x, self.dataset_y = self.shuffle()
         
-        self.dataset_y = np.array(list(self.dataset_y))
-        self.dataset_x = np.array(list(self.dataset_x))
+        # self.dataset_y = np.array(list(self.dataset_y))
+        # self.dataset_x = np.array(list(self.dataset_x))
+
+    def shuffle(self)->Tuple:
+        dataset = list(zip(self.dataset_x, self.dataset_y))
+        random.shuffle(dataset)
+        X, y = zip(*dataset)
+
+        return np.array(list(X)), np.array(list(y))
+
 
     def toMfcc(self, data)->list:
         #mfcc 통과
@@ -56,7 +66,7 @@ class Audio:
             estimator = GaussianMixture(n_components=class_num, max_iter=10, reg_covar=1e-2, random_state=self.seed, **params)
 
         # split 개수, 셔플 여부 및 seed 설정
-        kf = KFold(n_splits = self.cv, shuffle = True, random_state = self.seed)
+        kf = KFold(n_splits = self.cv, shuffle = False)
 
         acc = 0
         i = 1
@@ -86,7 +96,7 @@ class Audio:
             model = SVC(random_state=self.seed, **params)
 
         # split 개수, 셔플 여부 및 seed 설정
-        kf = KFold(n_splits = self.cv, shuffle = True, random_state = self.seed)
+        kf = KFold(n_splits = self.cv, shuffle = False)
 
         acc = 0
         i = 1
@@ -118,7 +128,7 @@ class Audio:
     def scoring(self, predict:list, actual:list)->int:
         #acc만 리턴하는 함수
         conf_mat = np.zeros((10,10))
-        for i in range(len(predict)): conf_mat[predict[i]][actual[i]] +=1
+        for i in range(len(predict)): conf_mat[predict[i]][actual[i]] +=1   
         no_correct = 0
         for i in range(10): no_correct += conf_mat[i][i]
         accuracy = no_correct/len(predict)
@@ -138,7 +148,7 @@ class Audio:
         if model_type == 'gmm':
             class_num = 10
 
-            kf = KFold(n_splits = self.cv, shuffle = True, random_state = self.seed)
+            kf = KFold(n_splits = self.cv, shuffle = False)
             #그리드 서치
             for grid in tqdm(grid_list):
                 estimator = GaussianMixture(n_components=class_num, max_iter=10, random_state=self.seed, reg_covar=1e-2, **grid)
@@ -169,12 +179,13 @@ class Audio:
             for grid in tqdm(grid_list):
                 model = SVC(random_state=self.seed, **grid)
 
-                kf = KFold(n_splits = self.cv, shuffle = True, random_state = self.seed)
+                kf = KFold(n_splits = self.cv, shuffle = False)
 
                 acc = 0
                 for train_index, test_index in kf.split(self.dataset_x):
                     X_train, X_test = self.dataset_x[train_index], self.dataset_x[test_index]
                     y_train, y_test = self.dataset_y[train_index], self.dataset_y[test_index]
+
 
                     model.fit(X_train, y_train)
                     acc += self.scoring(list(model.predict(X_test)), y_test)
@@ -202,7 +213,7 @@ if __name__ == '__main__':
         audio_obj = Audio('./data', 4, 16000, num_mfcc)
         
         #모델별 하이퍼파라미터할 파라미터 정의
-        svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[1,2,4,8]}
+        svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[1,2,4,8,16]}
         gmm_parmas = {'covariance_type':('diag','tied'), 'tol':(1e-1, 1e-2, 1e-3, 1e-4)}
 
         #svc 하이퍼파라미터 튜닝
@@ -213,6 +224,7 @@ if __name__ == '__main__':
 
         print(f"mfcc : {num_mfcc} ) svc fit ----")
         svc_model_pred = audio_obj.svcModel(svc_best_parmas)
+        # svc_model_pred = audio_obj.svcModel()
 
         if num_mfcc < 120:
             print(f"mfcc : {num_mfcc} ) gmm hyper parameter tuning ----")
@@ -221,3 +233,4 @@ if __name__ == '__main__':
 
             print(f"mfcc : {num_mfcc} ) gmm fit ----")
             gmm_model_pred = audio_obj.gmmModel(gmm_best_parmas)
+            # gmm_model_pred = audio_obj.gmmModel()
