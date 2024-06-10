@@ -40,9 +40,12 @@ class Audio:
                 self.dataset_y.append(index)
             
         self.dataset_x, self.dataset_y = self.shuffle()
+
         
         # self.dataset_y = np.array(list(self.dataset_y))
         # self.dataset_x = np.array(list(self.dataset_x))
+
+        return None
 
     def shuffle(self)->Tuple:
         dataset = list(zip(self.dataset_x, self.dataset_y))
@@ -50,7 +53,6 @@ class Audio:
         X, y = zip(*dataset)
 
         return np.array(list(X)), np.array(list(y))
-
 
     def toMfcc(self, data)->list:
         #mfcc 통과
@@ -86,6 +88,8 @@ class Audio:
 
         print(f"accuracy : {acc/self.cv}")
 
+        return None
+
 
     def svcModel(self, params=None)->list:
         #svc 모델, 파라미터 input이 없으면 기본으로 돌림
@@ -111,6 +115,8 @@ class Audio:
             i += 1
             acc += accuracy
         print(f"accuracy : {acc/self.cv}")
+
+        return None
 
     def scoreMatrix(self, predict:list, actual:list)->Tuple[list,float]:
         #스코어 매트릭스 계산
@@ -150,7 +156,7 @@ class Audio:
 
             kf = KFold(n_splits = self.cv, shuffle = False)
             #그리드 서치
-            for grid in tqdm(grid_list):
+            for grid in grid_list:
                 estimator = GaussianMixture(n_components=class_num, max_iter=10, random_state=self.seed, reg_covar=1e-2, **grid)
 
                 acc = 0
@@ -176,7 +182,7 @@ class Audio:
         #svc일 경우
         elif model_type == 'svc':
             #그리드 서치
-            for grid in tqdm(grid_list):
+            for grid in grid_list:
                 model = SVC(random_state=self.seed, **grid)
 
                 kf = KFold(n_splits = self.cv, shuffle = False)
@@ -213,8 +219,8 @@ if __name__ == '__main__':
         audio_obj = Audio('./data', 4, 16000, num_mfcc)
         
         #모델별 하이퍼파라미터할 파라미터 정의
-        svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[1,2,4,8,16]}
-        gmm_parmas = {'covariance_type':('diag','tied'), 'tol':(1e-1, 1e-2, 1e-3, 1e-4)}
+        svc_parameters = {'kernel': ('linear','rbf','poly','sigmoid'), 'C':[4,8,16]}
+        gmm_parmas = {'covariance_type':('diag','tied'), 'tol':(1e-3, 1e-4)}
 
         #svc 하이퍼파라미터 튜닝
         print(f"mfcc : {num_mfcc} ) svc hyper parameter tuning ----")
